@@ -68,7 +68,7 @@
          (select users
                  (where {:username "chris"
                          :email "hey@hey.com"}))
-         "SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"username\" = ? AND \"users\".\"email\" = ?)"
+         "SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"email\" = ? AND \"users\".\"username\" = ?)"
          (select users
                  (where {:username "chris"})
                  (order :created))
@@ -120,7 +120,7 @@
                  (where {:id 3})))))
 
 (deftest insert-function
-  (is (= "INSERT INTO \"users\" (\"last\", \"first\") VALUES (?, ?)"
+  (is (= "INSERT INTO \"users\" (\"first\", \"last\") VALUES (?, ?)"
          (-> (insert* "users")
            (values {:first "chris" :last "granger"})
            as-sql)))
@@ -134,10 +134,10 @@
 (deftest insert-queries
   (sql-only
     (are [result query] (= result query)
-         "INSERT INTO \"users\" (\"last\", \"first\") VALUES (?, ?)"
+         "INSERT INTO \"users\" (\"first\", \"last\") VALUES (?, ?)"
          (insert users
                  (values {:first "chris" :last "granger"}))
-         "INSERT INTO \"users\" (\"last\", \"first\") VALUES (?, ?), (?, ?)"
+         "INSERT INTO \"users\" (\"first\", \"last\") VALUES (?, ?), (?, ?)"
          (insert users
                  (values [{:first "chris" :last "granger"}
                           {:last "jordan" :first "michael"}]))
@@ -601,7 +601,7 @@
 ;;*****************************************************
 
 (deftest test-union
-  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"c\" = ? AND \"state\".\"b\" = ?)) :: [1 3 2]\n"
+  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"b\" = ? AND \"state\".\"c\" = ?)) :: [1 2 3]\n"
          (with-out-str (dry-run (union (queries (subselect users
                                                            (where {:a 1}))
                                                 (subselect state
@@ -609,7 +609,7 @@
                                                                    :c 3})))))))))
 
 (deftest test-union-all
-  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION ALL (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"c\" = ? AND \"state\".\"b\" = ?)) :: [1 3 2]\n"
+  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION ALL (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"b\" = ? AND \"state\".\"c\" = ?)) :: [1 2 3]\n"
          (with-out-str (dry-run (union-all (queries (subselect users
                                                                 (where {:a 1}))
                                                     (subselect state
@@ -617,7 +617,7 @@
                                                                         :c 3})))))))))
 
 (deftest test-intersect
-  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) INTERSECT (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"c\" = ? AND \"state\".\"b\" = ?)) :: [1 3 2]\n"
+  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) INTERSECT (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"b\" = ? AND \"state\".\"c\" = ?)) :: [1 2 3]\n"
          (with-out-str (dry-run (intersect (queries (subselect users
                                                                 (where {:a 1}))
                                                     (subselect state
@@ -625,7 +625,7 @@
                                                                         :c 3})))))))))
 
 (deftest test-order-by-in-union
-  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"c\" = ? AND \"state\".\"b\" = ?)) ORDER BY \"a\" ASC :: [1 3 2]\n"
+  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"b\" = ? AND \"state\".\"c\" = ?)) ORDER BY \"a\" ASC :: [1 2 3]\n"
          (with-out-str (dry-run (union (queries (subselect users
                                                             (where {:a 1}))
                                                 (subselect state
@@ -634,7 +634,7 @@
                                        (order :a)))))))
 
 (deftest test-order-by-in-union-all
-  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION ALL (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"c\" = ? AND \"state\".\"b\" = ?)) ORDER BY \"a\" ASC :: [1 3 2]\n"
+  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) UNION ALL (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"b\" = ? AND \"state\".\"c\" = ?)) ORDER BY \"a\" ASC :: [1 2 3]\n"
          (with-out-str (dry-run (union-all (queries (subselect users
                                                                 (where {:a 1}))
                                                     (subselect state
@@ -643,7 +643,7 @@
                                            (order :a)))))))
 
 (deftest test-order-by-in-intersect
-  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) INTERSECT (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"c\" = ? AND \"state\".\"b\" = ?)) ORDER BY \"a\" ASC :: [1 3 2]\n"
+  (is (= "dry run :: (SELECT \"users\".* FROM \"users\" WHERE (\"users\".\"a\" = ?)) INTERSECT (SELECT \"state\".* FROM \"state\" WHERE (\"state\".\"b\" = ? AND \"state\".\"c\" = ?)) ORDER BY \"a\" ASC :: [1 2 3]\n"
          (with-out-str (dry-run (intersect (queries (subselect users
                                                                 (where {:a 1}))
                                                     (subselect state
