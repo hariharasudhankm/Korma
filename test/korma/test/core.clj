@@ -311,11 +311,12 @@
         (select user2 (modifier "TOP 5")))))
 
 (deftest delimiters
-  (set-delimiters "`")
-  (sql-only
-    (is (= "SELECT `users`.* FROM `users`"
-           (select user2))))
-  (set-delimiters "\""))
+  (let [delimiters (:delimiters @options)]
+    (set-delimiters "`")
+    (sql-only
+      (is (= "SELECT `users`.* FROM `users`"
+             (select user2))))
+    (apply set-delimiters delimiters)))
 
 (deftest naming-delim-options
   (sql-only
